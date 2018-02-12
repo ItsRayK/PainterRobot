@@ -1,3 +1,16 @@
+/*
+   Title: Painter Robot (for AE-ME 3703) C-Term
+
+   Description: This is code for a painter robot designed to paint a
+    a vertical wall. The robot should approach the wall, paint and
+    keep consistent pressure of the paint roller to the wall.
+
+    An IR sensor controls the distance to keep between the robot and
+    the given wall.
+    Limit Switches are used to control the winch motor that raises
+    and lowers the roller.
+*/
+
 #include <Wire.h>
 #include <Adafruit_MotorShield.h>
 #include "utility/Adafruit_MS_PWMServoDriver.h"
@@ -43,9 +56,8 @@ void setup() {
 }
 
 void loop() {
-
-
-
+  approachWall(200);
+  paint();
 }
 
 //Painting Code
@@ -53,14 +65,14 @@ void paint() {
   int topSwitch = digitalRead(LIMUP);
   int botSwitch = digitalRead(LIMDOWN);
 
-  if (topSwitch == 0 && dir == 1){
+  if (topSwitch == 0 && dir == 1) {
     dir = 0;
   }
 
-  else if (botSwitch == 0 && dir == 0){
+  else if (botSwitch == 0 && dir == 0) {
     dir = 1;
   }
-  
+
   if (dir == 0) {
     motorPaint->run(FORWARD);
   }
@@ -72,25 +84,25 @@ void paint() {
 
 //Driving Code
 void approachWall(int dist) {
-  int pk = 1;
+  int pk = 1; //Basic proportional control
   int realDist = analogRead(IR1);
-  int error = realDist-dist;
+  int error = realDist - dist;
   error = error * pk;
   drive(error);
 }
 
-void drive(int spd){
-  if(spd < 0) {
+void drive(int spd) {
+  if (spd < 0) {
     motorLeft->setSpeed(abs(spd));
     motorRight->setSpeed(abs(spd));
-    
+
     motorLeft->run(BACKWARD);
     motorRight->run(BACKWARD);
   }
-  else if(spd >=0){
+  else if (spd >= 0) {
     motorLeft->setSpeed(abs(spd));
     motorRight->setSpeed(abs(spd));
-    
+
     motorLeft->run(FORWARD);
     motorRight->run(FORWARD);
   }
