@@ -34,29 +34,29 @@ void setup() {
   AFMS.begin();
   delay(500);
 
-  Serial.println("Setting up digital devices...");
+  Serial.println("Setting up GPIO pins...");
   pinMode(LIMUP, INPUT_PULLUP);
   pinMode(LIMDOWN, INPUT_PULLUP);
 
   Serial.println("Setting initial motor speeds...");
   motorLeft->setSpeed(30);
   motorRight->setSpeed(30);
-  motorPaint->setSpeed(30);
+  motorPaint->setSpeed(150);
   delay(800);
 
   Serial.println("Releasing all motors...");
   motorLeft->run(RELEASE);
   motorRight->run(RELEASE);
   motorPaint->run(RELEASE);
-  delay(100);
+  delay(500);
 
   Serial.println("Painter Robot initialization complete!");
-  delay(100);
+  delay(700);
   Serial.println("Running main loop...");
 }
 
 void loop() {
-  approachWall(200);
+  approachWall(600);
   paint();
 }
 
@@ -65,41 +65,46 @@ void paint() {
   int topSwitch = digitalRead(LIMUP);
   int botSwitch = digitalRead(LIMDOWN);
 
-  if (topSwitch == 0 && dir == 1) {
+  if (topSwitch == 1 && dir == 1) {
     dir = 0;
   }
 
-  else if (botSwitch == 0 && dir == 0) {
+  else if (botSwitch == 1 && dir == 0) {
     dir = 1;
   }
 
-  if (dir == 0) {
+  if (dir == 1) {
+    motorPaint->setSpeed(100);
     motorPaint->run(FORWARD);
   }
 
-  else if (dir == 1) {
+  else if (dir == 0) {
+    motorPaint->setSpeed(150);
     motorPaint->run(BACKWARD);
   }
 }
 
 //Driving Code
 void approachWall(int dist) {
-  int pk = 1; //Basic proportional control
-  int realDist = analogRead(IR1);
-  int error = realDist - dist;
+  float pk = 1.5; //Basic proportional control
+  float realDist = analogRead(IR1);
+  Serial.print(realDist);
+  Serial.print("    ");
+  float error = realDist - dist;
   error = error * pk;
   drive(error);
+  Serial.println(error);
 }
 
 void drive(int spd) {
-  if (spd < 0) {
+  if (spd > 0) {
     motorLeft->setSpeed(abs(spd));
     motorRight->setSpeed(abs(spd));
 
     motorLeft->run(BACKWARD);
     motorRight->run(BACKWARD);
   }
-  else if (spd >= 0) {
+  else if (spd <= 0) {
     motorLeft->setSpeed(abs(spd));
     motorRight->setSpeed(abs(spd));
 
